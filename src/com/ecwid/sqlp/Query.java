@@ -12,15 +12,24 @@ public class Query {
     private Integer limit;
     private Integer offset;
 
-    private class Join {
+    public class Source {
+        private String name;
+        private String alias;
     }
 
-    private class Source {
+    public class Join {
+        private String joinType;
+        private String joinTable;
+        private String onFields;
     }
 
-    private class WhereClause {
+    public class WhereClause {
+        private String clause;
+        private Boolean isHaving;
     }
 
-    private class Sort {
+    public class Sort {
+        private String sortType;
+        private String sortField;
     }
 }
