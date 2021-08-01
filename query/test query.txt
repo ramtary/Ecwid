@@ -1,6 +1,6 @@
-SELECT author.name, count(book.id), sum(book.cost)
+SELECT author.name, count(book.id), sum(book.cost), (select id from books_id where title = "FEAR") as ID
 FROM author
 LEFT JOIN book ON (author.id = book.author_id)
 GROUP BY author.name
-HAVING (COUNT(*) > 1 OR COUNT(*) < 10) AND SUM(book.cost) > 500
+HAVING (COUNT(*) > 1 OR COUNT(*) < 10) AND SUM(book.cost) > (select id from books_id where title = "FEAR")
 LIMIT 10;
