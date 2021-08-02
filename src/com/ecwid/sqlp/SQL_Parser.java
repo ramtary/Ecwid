@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SQL_Parser {
+    // операторы, для условий where и having
     private static final String[] operators = {"=",">","<",">=","<=","<>","!=","!<","!>"};
 
     public static void main(String[] args) {
@@ -18,15 +19,16 @@ public class SQL_Parser {
         final String ANSI_BLUE = "\u001B[34m";
         final String ANSI_GREEN = "\u001B[32m";
 
-        String queryString = getQueryString();
-        Query parsedQuery = parseThis(queryString);
+        String queryString = getQueryString(); // получаем строку запроса из файла
+        Query parsedQuery = parseThis(queryString); // парсим запрос
         System.out.println(ANSI_GREEN + "Был запрос:" + ANSI_RESET);
-        System.out.println(queryString);
+        System.out.println(queryString); // выводим то что было...
         System.out.println();
         System.out.println(ANSI_GREEN + "Получился экземпляр класса Query:" + ANSI_RESET);
-        System.out.println(ANSI_BLUE + parsedQuery + ANSI_RESET);
+        System.out.println(ANSI_BLUE + parsedQuery + ANSI_RESET); // ... и то что получилось :)
     }
 
+    // получение строки запроса из файла
     public static String getQueryString() {
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -44,7 +46,7 @@ public class SQL_Parser {
         return null;
     }
 
-
+    // парсим запрос
     public static Query parseThis(String queryString) {
         ArrayList<String> arrayOfQueryLines = new ArrayList<>(queryString.lines().toList());
 
@@ -61,34 +63,35 @@ public class SQL_Parser {
             line = line.toUpperCase();
 
             if (line.contains(KeyWords.SELECT.toString()) & line.indexOf(KeyWords.SELECT.toString()) == 0)
-                extSimple(columns, line, KeyWords.SELECT, subQuery);
+                extSimple(columns, line, KeyWords.SELECT, subQuery); // извлекаем поля выборки
 
             if (line.contains(KeyWords.FROM.toString()) & line.indexOf(KeyWords.FROM.toString()) == 0)
-                extTwinExpr(sources, line, KeyWords.FROM);
+                extTwinExpr(sources, line, KeyWords.FROM); // ...источники
 
             if (line.contains(KeyWords.JOIN.toString()))
-                extJoins(joins, line);
+                extJoins(joins, line); // ...объединения
 
             if ((line.contains(KeyWords.WHERE.toString()) & line.indexOf(KeyWords.WHERE.toString()) == 0)
                     | (line.contains(KeyWords.HAVING.toString()) & line.indexOf(KeyWords.HAVING.toString()) == 0))
-                extWhereAndHaving(whereAndHaving, line, subQuery);
+                extWhereAndHaving(whereAndHaving, line, subQuery); // ...условия
 
             if (line.contains(KeyWords.GROUP_BY.toString()) & line.indexOf(KeyWords.GROUP_BY.toString()) == 0)
-                extSimple(groups, line, KeyWords.GROUP_BY, subQuery);
+                extSimple(groups, line, KeyWords.GROUP_BY, subQuery); // ...группировки
 
             if (line.contains(KeyWords.ORDER_BY.toString()))
-                extTwinExpr(sorts, line, KeyWords.ORDER_BY);
+                extTwinExpr(sorts, line, KeyWords.ORDER_BY); // ...сортировки
 
             if (line.contains(KeyWords.LIMIT.toString()))
-                limit = extTruncations(line, KeyWords.LIMIT);
+                limit = extTruncations(line, KeyWords.LIMIT); // ...усечения
 
             if (line.contains(KeyWords.OFFSET.toString()))
                 offset = extTruncations(line, KeyWords.OFFSET);
         }
-
+        // возвращаем экземпляр класса
         return new Query(columns, sources, joins, whereAndHaving, groups, sorts, limit, offset, subQuery);
     }
 
+    // извлечение Where и Having
     private static void extWhereAndHaving(List<Query.WhereAndHavingClause> whereAndHaving, String line, List<Query> subQuery) {
         String clearClauseString = "";
         boolean isHaving = false;
@@ -152,10 +155,12 @@ public class SQL_Parser {
         }
     }
 
+    // удаление ключевых слов
     private static String removeKeyWord(String line, KeyWords keyWord) {
         return line.replaceFirst(keyWord.getWordInQuery(), "").replace(";", "");
     }
 
+    // удаление внешних скобок
     private static String removeBrackets(String line) {
         Pattern pattern = Pattern.compile("^\\((.*)\\)$");
         Matcher match = pattern.matcher(line);
@@ -163,6 +168,7 @@ public class SQL_Parser {
         return match.find() ? match.group(1) : line;
     }
 
+    // удаление внешних скобок и алиаса
     private static String removeBracketsAndAlias(String line) {
         Pattern pattern = Pattern.compile("^\\((.*)\\).*$");
         Matcher match = pattern.matcher(line);
@@ -170,6 +176,7 @@ public class SQL_Parser {
         return match.find() ? match.group(1) : line;
     }
 
+    // извлечение объединений
     private static void extJoins(List<Query.Join> joins, String line) {
         String joinType = line.substring(0, line.indexOf(" "));
 
@@ -203,6 +210,7 @@ public class SQL_Parser {
         }
     }
 
+    // из строки, в запрос с новых строк
     private static String getCorrectQuery(String query) {
         KeyWords[] queryKeyWords = {KeyWords.FROM, KeyWords.WHERE, KeyWords.GROUP_BY, KeyWords.HAVING};
         query = removeBracketsAndAlias(query);
@@ -228,6 +236,7 @@ public class SQL_Parser {
         }
     }
 
+    // извлечение усечений
     private static Integer extTruncations(String line, KeyWords keyWord) {
         return Integer.parseInt(removeKeyWord(line, keyWord));
     }
